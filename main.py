@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from pymongo import MongoClient
 
 
 def buscar_pagina(url):
@@ -50,9 +51,20 @@ def montar_noticias(destaques):
 if __name__ == "__main__":
     url = 'https://martelloonlinenoticias.com.br/'
     pagina = buscar_pagina(url)
-    quantidade = 20
+    quantidade = 5
 
     destaques = pagina.find_all(class_='entry-title title')[:quantidade]
     noticias = montar_noticias(destaques)
 
-    print(noticias)
+    client = MongoClient()
+    banco = client.huntercitynews
+    tabela_noticias = banco.noticias
+
+    for noticia in noticias:
+        filtro = {"id": noticia['id']}
+        ja_existe = tabela_noticias.find_one(filtro)
+        if not ja_existe:
+            tabela_noticias.insert_one(noticia)
+
+    minha_noticia = tabela_noticias.find_one({"id": 3990})
+    print(minha_noticia)
